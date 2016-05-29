@@ -169,6 +169,7 @@ module Tumugi
         def remove_bucket(bucket)
           if bucket_exist?(bucket)
             @client.delete_bucket(bucket)
+            true
           else
             false
           end
@@ -176,18 +177,18 @@ module Tumugi
           raise Tumugi::FileSystemError.new(e.message)
         end
 
-        private
-
-        def obj_exist?(bucket, key)
-          @client.get_object(bucket, key)
+        def bucket_exist?(bucket)
+          @client.get_bucket(bucket)
           true
         rescue => e
           return false if e.status_code == 404
           raise Tumugi::FileSystemError.new(e.message)
         end
 
-        def bucket_exist?(bucket)
-          @client.get_bucket(bucket)
+        private
+
+        def obj_exist?(bucket, key)
+          @client.get_object(bucket, key)
           true
         rescue => e
           return false if e.status_code == 404

@@ -163,4 +163,13 @@ class Tumugi::Plugin::GCSFileSystemTest < Test::Unit::TestCase
       end
     end
   end
+
+  test "bucket releated methods" do
+    bucket = "tumugi-plugin-gcs-#{SecureRandom.hex(10)}"
+    assert_false(@fs.bucket_exist?(bucket))
+    assert_true(@fs.create_bucket(bucket))
+    assert_true(@fs.bucket_exist?(bucket))
+    assert_true(@fs.remove_bucket(bucket))
+    assert_false(@fs.bucket_exist?(bucket))
+  end
 end
