@@ -154,6 +154,28 @@ module Tumugi
           [ uri.host, uri.path[1..-1] ]
         end
 
+        def create_bucket(bucket)
+          unless bucket_exist?(bucket)
+            b = Google::Apis::StorageV1::Bucket.new(name: bucket)
+            @client.insert_bucket(@project_id, b)
+            true
+          else
+            false
+          end
+        rescue => e
+          raise Tumugi::FileSystemError.new(e.message)
+        end
+
+        def remove_bucket(bucket)
+          if bucket_exist?(bucket)
+            @client.delete_bucket(bucket)
+          else
+            false
+          end
+        rescue => e
+          raise Tumugi::FileSystemError.new(e.message)
+        end
+
         private
 
         def obj_exist?(bucket, key)
