@@ -4,30 +4,28 @@ require 'tumugi/plugin/gcs/gcs_file_system'
 class Tumugi::Plugin::GCSFileSystemTest < Test::Unit::TestCase
   setup do
     @fs = Tumugi::Plugin::GCS::GCSFileSystem.new(credential)
-    @bucket = "tumugi-plugin-gcs-#{SecureRandom.hex(10)}"
-    @fs.create_bucket(@bucket)
-
+    @bucket = "tumugi-plugin-gcs"
+    @prefix = "#{SecureRandom.hex(10)}"
     @keys = [ "file1.txt", "folder/file2.txt"]
     @keys.each do |key|
-      @fs.put_string('test', "gs://#{@bucket}/fs_test/#{key}")
+      @fs.put_string('test', "gs://#{@bucket}/#{@prefix}/fs_test/#{key}")
     end
   end
 
   teardown do
-    @fs.remove("gs://#{@bucket}/fs_test/")
-    @fs.remove("gs://#{@bucket}/fs_dest/")
-    @fs.remove_bucket(@bucket)
+    @fs.remove("gs://#{@bucket}/#{@prefix}/fs_test/")
+    @fs.remove("gs://#{@bucket}/#{@prefix}/fs_dest/")
   end
 
   sub_test_case "exist?" do
     test "true" do
-      assert_true(@fs.exist?("gs://#{@bucket}/fs_test/"))
-      assert_true(@fs.exist?("gs://#{@bucket}/fs_test/#{@keys[0]}"))
+      assert_true(@fs.exist?("gs://#{@bucket}/#{@prefix}/fs_test/"))
+      assert_true(@fs.exist?("gs://#{@bucket}/#{@prefix}/fs_test/#{@keys[0]}"))
     end
 
     test "false" do
-      assert_false(@fs.exist?("gs://#{@bucket}/fs_test/not_found_dir/"))
-      assert_false(@fs.exist?("gs://#{@bucket}/fs_test/not_found_file.txt"))
+      assert_false(@fs.exist?("gs://#{@bucket}/#{@prefix}/fs_test/not_found_dir/"))
+      assert_false(@fs.exist?("gs://#{@bucket}/#{@prefix}/fs_test/not_found_file.txt"))
     end
   end
 
@@ -39,45 +37,45 @@ class Tumugi::Plugin::GCSFileSystemTest < Test::Unit::TestCase
     end
 
     test "exist file" do
-      assert_true(@fs.remove("gs://#{@bucket}/fs_test/#{@keys[0]}"))
+      assert_true(@fs.remove("gs://#{@bucket}/#{@prefix}/fs_test/#{@keys[0]}"))
     end
 
     test "non exist file" do
-      assert_false(@fs.remove("gs://#{@bucket}/fs_test/not_found.txt"))
+      assert_false(@fs.remove("gs://#{@bucket}/#{@prefix}/fs_test/not_found.txt"))
     end
 
     test "directory without recursive flag" do
       assert_raise(Tumugi::FileSystemError) do
-        @fs.remove("gs://#{@bucket}/fs_test/", recursive: false)
+        @fs.remove("gs://#{@bucket}/#{@prefix}/fs_test/", recursive: false)
       end
     end
 
     test "directory also delete child files" do
-      assert_true(@fs.remove("gs://#{@bucket}/fs_test/"))
-      assert_equal(0, @fs.entries("gs://#{@bucket}/fs_test/").count)
+      assert_true(@fs.remove("gs://#{@bucket}/#{@prefix}/fs_test/"))
+      assert_equal(0, @fs.entries("gs://#{@bucket}/#{@prefix}/fs_test/").count)
     end
   end
 
   sub_test_case "mkdir" do
     test "return true when success" do
-      assert_true(@fs.mkdir("gs://#{@bucket}/fs_test/new_dir/"))
+      assert_true(@fs.mkdir("gs://#{@bucket}/#{@prefix}/fs_test/new_dir/"))
     end
 
     sub_test_case "path is already exist" do
       test "raise error if raise_if_exist flag is true" do
         assert_raise(Tumugi::FileAlreadyExistError) do
-          @fs.mkdir("gs://#{@bucket}/fs_test/", raise_if_exist: true)
+          @fs.mkdir("gs://#{@bucket}/#{@prefix}/fs_test/", raise_if_exist: true)
         end
       end
 
       test "raise error if path is not a directory" do
         assert_raise(Tumugi::NotADirectoryError) do
-          @fs.mkdir("gs://#{@bucket}/fs_test/#{@keys[0]}")
+          @fs.mkdir("gs://#{@bucket}/#{@prefix}/fs_test/#{@keys[0]}")
         end
       end
 
       test "return false" do
-        assert_false(@fs.mkdir("gs://#{@bucket}/fs_test/"))
+        assert_false(@fs.mkdir("gs://#{@bucket}/#{@prefix}/fs_test/"))
       end
     end
   end
@@ -89,29 +87,29 @@ class Tumugi::Plugin::GCSFileSystemTest < Test::Unit::TestCase
     "not_a_folder" => [ false, "fs_test/not_a_folder" ]
   })
   test "directory?" do |(expected, path)|
-    assert_equal(expected, @fs.directory?("gs://#{@bucket}/#{path}"))
+    assert_equal(expected, @fs.directory?("gs://#{@bucket}/#{@prefix}/#{path}"))
   end
 
   sub_test_case 'entries' do
     test 'path has entries' do
-      entries = @fs.entries("gs://#{@bucket}/fs_test/")
+      entries = @fs.entries("gs://#{@bucket}/#{@prefix}/fs_test/")
       assert_equal(@keys.count, entries.count)
       @keys.each_with_index do |key, i|
         assert_equal(@bucket, entries[i].bucket)
-        assert_equal("fs_test/#{key}", entries[i].name)
+        assert_equal("#{@prefix}/fs_test/#{key}", entries[i].name)
       end
     end
 
     test 'path has no entry' do
-      entries = @fs.entries("gs://#{@bucket}/fs_test/no_entries/")
+      entries = @fs.entries("gs://#{@bucket}/#{@prefix}/fs_test/no_entries/")
       assert_true(entries.empty?)
     end
   end
 
   sub_test_case "move" do
     test 'directory' do
-      src_path = "gs://#{@bucket}/fs_test/"
-      dest_path = "gs://#{@bucket}/fs_dest/"
+      src_path = "gs://#{@bucket}/#{@prefix}/fs_test/"
+      dest_path = "gs://#{@bucket}/#{@prefix}/fs_dest/"
 
       @fs.move(src_path, dest_path)
 
@@ -120,26 +118,26 @@ class Tumugi::Plugin::GCSFileSystemTest < Test::Unit::TestCase
       assert_equal(@keys.count, entries.count)
       @keys.each_with_index do |key, i|
         assert_equal(@bucket, entries[i].bucket)
-        assert_equal("fs_dest/#{key}", entries[i].name)
+        assert_equal("#{@prefix}/fs_dest/#{key}", entries[i].name)
       end
     end
   end
 
   test 'upload' do
-    new_file_path = "gs://#{@bucket}/fs_test/new_file.txt"
+    new_file_path = "gs://#{@bucket}/#{@prefix}/fs_test/new_file.txt"
     @fs.upload(StringIO.new('upload'), new_file_path)
     assert_true(@fs.exist?(new_file_path))
   end
 
   test 'download' do
-    @fs.download("gs://#{@bucket}/fs_test/#{@keys[0]}", 'tmp/download.txt')
+    @fs.download("gs://#{@bucket}/#{@prefix}/fs_test/#{@keys[0]}", 'tmp/download.txt')
     assert_equal('test', File.read('tmp/download.txt'))
   end
 
   sub_test_case 'copy' do
     test 'directory' do
-      src_path = "gs://#{@bucket}/fs_test/"
-      dest_path = "gs://#{@bucket}/fs_dest/"
+      src_path = "gs://#{@bucket}/#{@prefix}/fs_test/"
+      dest_path = "gs://#{@bucket}/#{@prefix}/fs_dest/"
 
       @fs.copy(src_path, dest_path)
 
@@ -147,7 +145,7 @@ class Tumugi::Plugin::GCSFileSystemTest < Test::Unit::TestCase
       assert_equal(@keys.count, entries.count)
       @keys.each_with_index do |key, i|
         assert_equal(@bucket, entries[i].bucket)
-        assert_equal("fs_dest/#{key}", entries[i].name)
+        assert_equal("#{@prefix}/fs_dest/#{key}", entries[i].name)
       end
     end
   end
