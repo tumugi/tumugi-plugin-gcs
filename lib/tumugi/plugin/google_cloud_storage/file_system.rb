@@ -24,6 +24,8 @@ module Tumugi
           else
             directory?(path)
           end
+        rescue
+          process_error($!)
         end
 
         def remove(path, recursive: true)
@@ -48,6 +50,8 @@ module Tumugi
           else
             false
           end
+        rescue
+          process_error($!)
         end
 
         def mkdir(path, parents: true, raise_if_exist: false)
@@ -62,6 +66,8 @@ module Tumugi
             put_string("", add_path_delimiter(path))
             true
           end
+        rescue
+          process_error($!)
         end
 
         def directory?(path)
@@ -78,6 +84,8 @@ module Tumugi
               !!(objects.items && objects.items.size > 0)
             end
           end
+        rescue
+          process_error($!)
         end
 
         def entries(path)
@@ -96,6 +104,8 @@ module Tumugi
             end
           end
           results
+        rescue
+          process_error($!)
         end
 
         def move(src_path, dest_path, raise_if_exist: false)
@@ -112,6 +122,8 @@ module Tumugi
           obj = Google::Apis::StorageV1::Object.new(bucket: bucket, name: key)
           @client.insert_object(bucket, obj, upload_source: media, content_type: content_type)
           wait_until { obj_exist?(bucket, key) }
+        rescue
+          process_error($!)
         end
 
         def download(path, download_path: nil, mode: 'r', &block)
@@ -127,6 +139,8 @@ module Tumugi
           else
             File.open(download_path, mode)
           end
+        rescue
+          process_error($!)
         end
 
         def put_string(contents, path, content_type: 'text/plain')
@@ -155,6 +169,8 @@ module Tumugi
             @client.copy_object(src_bucket, src_key, dest_bucket, dest_key)
             wait_until { obj_exist?(dest_bucket, dest_key) }
           end
+        rescue
+          process_error($!)
         end
 
         def path_to_bucket_and_key(path)
@@ -171,8 +187,8 @@ module Tumugi
           else
             false
           end
-        rescue => e
-          raise Tumugi::FileSystemError.new(e.message)
+        rescue
+          process_error($!)
         end
 
         def remove_bucket(bucket)
@@ -182,8 +198,8 @@ module Tumugi
           else
             false
           end
-        rescue => e
-          raise Tumugi::FileSystemError.new(e.message)
+        rescue
+          process_error($!)
         end
 
         def bucket_exist?(bucket)
@@ -191,7 +207,7 @@ module Tumugi
           true
         rescue => e
           return false if e.status_code == 404
-          raise Tumugi::FileSystemError.new(e.message)
+          process_error(e)
         end
 
         private
@@ -201,7 +217,7 @@ module Tumugi
           true
         rescue => e
           return false if e.status_code == 404
-          raise Tumugi::FileSystemError.new(e.message)
+          process_error(e)
         end
 
         def root?(key)
@@ -246,6 +262,23 @@ module Tumugi
         def wait_until(&block)
           while not block.call
             sleep 1
+          end
+        end
+
+        def process_error(err)
+          if err.respond_to?(:body)
+            begin
+              jobj = JSON.parse(err.body)
+              error = jobj["error"]
+              reason = error["errors"].map{|e| e["reason"]}.join(",")
+              errors = error["errors"].map{|e| e["message"] }.join("\n")
+            rescue JSON::ParserError
+              reason = err.status_code.to_s
+              errors = "HTTP Status: #{err.status_code}\nHeaders: #{err.header.inspect}\nBody:\n#{err.body}"
+            end
+            raise Tumugi::FileSystemError.new(errors, reason)
+          else
+            raise err
           end
         end
       end
