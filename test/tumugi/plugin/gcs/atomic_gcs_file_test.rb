@@ -15,14 +15,13 @@ class Tumugi::Plugin::GCS::AtomicGCSFileTest < Test::Unit::TestCase
 
   test "after open and close file, file upload to GCS" do
     path = "gs://#{@bucket}/#{@prefix}/atomic_gcs_file_test.txt"
-    download_path = "tmp/#{@prefix}_atomic_gcs_file_test.txt"
-
     @file = Tumugi::Plugin::GCS::AtomicGCSFile.new(path, @fs)
     @file.open do |f|
       f.puts 'test'
     end
     @fs.exist?(path)
-    @fs.download(path, download_path)
-    assert_equal("test\n", File.read(download_path))
+    @fs.download(path) do |f|
+      assert_equal("test\n", f.read)
+    end
   end
 end

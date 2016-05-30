@@ -89,8 +89,8 @@ class Tumugi::Plugin::GCS::GCSFileSystemTest < Test::Unit::TestCase
     assert_equal(expected, @fs.directory?("gs://#{@bucket}/#{@prefix}/#{path}"))
   end
 
-  sub_test_case 'entries' do
-    test 'path has entries' do
+  sub_test_case "entries" do
+    test "path has entries" do
       entries = @fs.entries("gs://#{@bucket}/#{@prefix}/fs_test/")
       assert_equal(@keys.count, entries.count)
       @keys.each_with_index do |key, i|
@@ -99,14 +99,14 @@ class Tumugi::Plugin::GCS::GCSFileSystemTest < Test::Unit::TestCase
       end
     end
 
-    test 'path has no entry' do
+    test "path has no entry" do
       entries = @fs.entries("gs://#{@bucket}/#{@prefix}/fs_test/no_entries/")
       assert_true(entries.empty?)
     end
   end
 
   sub_test_case "move" do
-    test 'directory' do
+    test "directory" do
       src_path = "gs://#{@bucket}/#{@prefix}/fs_test/"
       dest_path = "gs://#{@bucket}/#{@prefix}/fs_dest/"
 
@@ -122,19 +122,29 @@ class Tumugi::Plugin::GCS::GCSFileSystemTest < Test::Unit::TestCase
     end
   end
 
-  test 'upload' do
+  test "upload" do
     new_file_path = "gs://#{@bucket}/#{@prefix}/fs_test/new_file.txt"
     @fs.upload(StringIO.new('upload'), new_file_path)
     assert_true(@fs.exist?(new_file_path))
   end
 
-  test 'download' do
-    @fs.download("gs://#{@bucket}/#{@prefix}/fs_test/#{@keys[0]}", 'tmp/download.txt')
-    assert_equal('test', File.read('tmp/download.txt'))
+  sub_test_case "download" do
+    test "without block" do
+      f = @fs.download("gs://#{@bucket}/#{@prefix}/fs_test/#{@keys[0]}", download_path: 'tmp/download.txt')
+      assert_true(File.exist?('tmp/download.txt'))
+      assert_equal('test', f.read)
+      f.close
+    end
+
+    test "with block, without destination file name" do
+      @fs.download("gs://#{@bucket}/#{@prefix}/fs_test/#{@keys[0]}") do |f|
+        assert_equal('test', f.read)
+      end
+    end
   end
 
-  sub_test_case 'copy' do
-    test 'directory' do
+  sub_test_case "copy" do
+    test "directory" do
       src_path = "gs://#{@bucket}/#{@prefix}/fs_test/"
       dest_path = "gs://#{@bucket}/#{@prefix}/fs_dest/"
 
