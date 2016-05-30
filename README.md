@@ -23,6 +23,23 @@ Or install it yourself as:
 ### Tumugi::Plugin::GoogleCloudStorageFileTarget
 
 This target represent file or directory on Googl Cloud Storage.
+This target has 2 parameters, `bucket` and `key`.
+
+Tumugi workflow file using this target is like this:
+
+```rb
+task :task1 do
+  param :bucket, type: :string, auto_bind: true, required: true
+  param :day, type: :time, auto_bind: true, required: true
+  output do
+    target(:google_cloud_storage_file, bucket: bucket, key: "test_#{day.strftime('%Y%m%d')}.txt")
+  end
+  run do
+    log 'task1#run'
+    output.open('w') {|f| f.puts('done') }
+  end
+end
+```
 
 ## Development
 
