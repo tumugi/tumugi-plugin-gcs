@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/tumugi/tumugi-plugin-google_cloud_storage.svg?branch=master)](https://travis-ci.org/tumugi/tumugi-plugin-google_cloud_storage) [![Code Climate](https://codeclimate.com/github/tumugi/tumugi-plugin-google_cloud_storage/badges/gpa.svg)](https://codeclimate.com/github/tumugi/tumugi-plugin-google_cloud_storage) [![Coverage Status](https://coveralls.io/repos/github/tumugi/tumugi-plugin-google_cloud_storage/badge.svg?branch=master)](https://coveralls.io/github/tumugi/tumugi-plugin-google_cloud_storage)  [![Gem Version](https://badge.fury.io/rb/tumugi-plugin-google_cloud_storage.svg)](https://badge.fury.io/rb/tumugi-plugin-google_cloud_storage)
+
 # tumugi-plugin-google_cloud_storage
 
 [tumugi](https://github.com/tumugi/tumugi) plugin for Google Cloud Storage.
@@ -23,6 +25,23 @@ Or install it yourself as:
 ### Tumugi::Plugin::GoogleCloudStorageFileTarget
 
 This target represent file or directory on Googl Cloud Storage.
+This target has 2 parameters, `bucket` and `key`.
+
+Tumugi workflow file using this target is like this:
+
+```rb
+task :task1 do
+  param :bucket, type: :string, auto_bind: true, required: true
+  param :day, type: :time, auto_bind: true, required: true
+  output do
+    target(:google_cloud_storage_file, bucket: bucket, key: "test_#{day.strftime('%Y%m%d')}.txt")
+  end
+  run do
+    log 'task1#run'
+    output.open('w') {|f| f.puts('done') }
+  end
+end
+```
 
 ## Development
 
