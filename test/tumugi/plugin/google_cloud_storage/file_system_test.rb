@@ -157,6 +157,14 @@ class Tumugi::Plugin::GoogleCloudStorage::FileSystemTest < Test::Unit::TestCase
         assert_equal("#{@prefix}/fs_dest/#{key}", entries[i].name)
       end
     end
+
+    test "raise_if_exist" do
+      assert_raise(Tumugi::FileAlreadyExistError) do
+        src_path = "gs://#{@bucket}/#{@prefix}/fs_test/"
+        dest_path = "gs://#{@bucket}/#{@prefix}/fs_test/"
+        @fs.copy(src_path, dest_path, raise_if_exist: true)
+      end
+    end
   end
 
   sub_test_case "path_to_bucket_and_key" do

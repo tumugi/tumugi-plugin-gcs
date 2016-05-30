@@ -135,6 +135,10 @@ module Tumugi
         end
 
         def copy(src_path, dest_path, raise_if_exist: false)
+          if raise_if_exist && exist?(dest_path)
+            raise Tumugi::FileAlreadyExistError.new("Path #{dest_path} is already exist")
+          end
+
           src_bucket, src_key = path_to_bucket_and_key(src_path)
           dest_bucket, dest_key = path_to_bucket_and_key(dest_path)
 
