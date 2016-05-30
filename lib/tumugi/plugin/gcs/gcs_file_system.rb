@@ -107,17 +107,26 @@ module Tumugi
         # Specific methods
         #######################################################################
 
-        def upload(media, path, content_type: 'application/octet-stream')
+        def upload(media, path, content_type: nil)
           bucket, key = path_to_bucket_and_key(path)
           obj = Google::Apis::StorageV1::Object.new(bucket: bucket, name: key)
           @client.insert_object(bucket, obj, upload_source: media, content_type: content_type)
           wait_until { obj_exist?(bucket, key) }
         end
 
-        def download(path, download_dest)
+        def download(path, download_path: nil, mode: 'r', &block)
           bucket, key = path_to_bucket_and_key(path)
-          @client.get_object(bucket, key, download_dest: download_dest)
-          wait_until { File.exist?(download_dest) }
+          if download_path.nil?
+            download_path = Tempfile.new('tumugi_gcs_file_system').path
+          end
+          @client.get_object(bucket, key, download_dest: download_path)
+          wait_until { File.exist?(download_path) }
+
+          if block_given?
+            File.open(download_path, mode, &block)
+          else
+            File.open(download_path, mode)
+          end
         end
 
         def put_string(contents, path, content_type: 'text/plain')

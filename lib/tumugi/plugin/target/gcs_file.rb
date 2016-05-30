@@ -19,21 +19,21 @@ module Tumugi
         log "bucket='#{bucket}, key='#{key}'"
       end
 
+      def exist?
+        fs.exist?(path)
+      end
+
       def fs
         @fs ||= Tumugi::Plugin::GCS::GCSFileSystem.new(Tumugi.config.section('gcs'))
       end
 
-      def client
-        fs.client
-      end
-
       def open(mode="r", &block)
         if mode.include? 'r'
-          fs.download(path)
+          fs.download(path, mode: mode, &block)
         elsif mode.include? 'w'
           Tumugi::Plugin::GCS::AtomicGCSFile.new(path, fs).open(&block)
         else
-          raise 'Invalid mode: #{mode}'
+          raise Tumugi::TumugiError.new('Invalid mode: #{mode}')
         end
       end
 
