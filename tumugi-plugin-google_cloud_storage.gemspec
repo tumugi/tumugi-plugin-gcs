@@ -3,13 +3,13 @@ lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
 Gem::Specification.new do |spec|
-  spec.name          = "tumugi-plugin-gcs"
+  spec.name          = "tumugi-plugin-google_cloud_storage"
   spec.version       = "0.0.1"
   spec.authors       = ["Kazuyuki Honda"]
   spec.email         = ["hakobera@gmail.com"]
 
   spec.summary       = "Tumugi plugin for Google Cloud Storage"
-  spec.homepage      = "https://github.com/tumugi/tumugi-plugin-gcs"
+  spec.homepage      = "https://github.com/tumugi/tumugi-plugin-google_cloud_storage"
   spec.license       = "Apache License Version 2.0"
 
   spec.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }

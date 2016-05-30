@@ -1,10 +1,10 @@
 require_relative '../../../test_helper'
-require 'tumugi/plugin/gcs/atomic_gcs_file'
-require 'tumugi/plugin/gcs/gcs_file_system'
+require 'tumugi/plugin/google_cloud_storage/atomic_file'
+require 'tumugi/plugin/google_cloud_storage/file_system'
 
-class Tumugi::Plugin::GCS::AtomicGCSFileTest < Test::Unit::TestCase
+class Tumugi::Plugin::GoogleCloudStorage::AtomicFileTest < Test::Unit::TestCase
   setup do
-    @fs = Tumugi::Plugin::GCS::GCSFileSystem.new(credential)
+    @fs = Tumugi::Plugin::GoogleCloudStorage::FileSystem.new(credential)
     @bucket = "tumugi-plugin-gcs"
     @prefix = "#{SecureRandom.hex(10)}"
   end
@@ -13,9 +13,9 @@ class Tumugi::Plugin::GCS::AtomicGCSFileTest < Test::Unit::TestCase
     @fs.remove("gs://#{@bucket}/#{@prefix}/")
   end
 
-  test "after open and close file, file upload to GCS" do
+  test "after open and close file, file upload to Google Cloud Storage" do
     path = "gs://#{@bucket}/#{@prefix}/atomic_gcs_file_test.txt"
-    @file = Tumugi::Plugin::GCS::AtomicGCSFile.new(path, @fs)
+    @file = Tumugi::Plugin::GoogleCloudStorage::AtomicFile.new(path, @fs)
     @file.open do |f|
       f.puts 'test'
     end

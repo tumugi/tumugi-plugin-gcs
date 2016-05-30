@@ -4,8 +4,8 @@ require 'tumugi/file_system'
 
 module Tumugi
   module Plugin
-    module GCS
-      class GCSFileSystem < Tumugi::FileSystem
+    module GoogleCloudStorage
+      class FileSystem < Tumugi::FileSystem
         attr_reader :client
 
         def initialize(config)
