@@ -107,7 +107,7 @@ module Tumugi
         # Specific methods
         #######################################################################
 
-        def upload(media, path, content_type: 'application/octet-stream')
+        def upload(media, path, content_type: nil)
           bucket, key = path_to_bucket_and_key(path)
           obj = Google::Apis::StorageV1::Object.new(bucket: bucket, name: key)
           @client.insert_object(bucket, obj, upload_source: media, content_type: content_type)

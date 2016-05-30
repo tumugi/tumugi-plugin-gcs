@@ -1,7 +1,7 @@
 require_relative '../../../test_helper'
 require 'tumugi/plugin/gcs/gcs_file_system'
 
-class Tumugi::Plugin::GCSFileSystemTest < Test::Unit::TestCase
+class Tumugi::Plugin::GCS::GCSFileSystemTest < Test::Unit::TestCase
   setup do
     @fs = Tumugi::Plugin::GCS::GCSFileSystem.new(credential)
     @bucket = "tumugi-plugin-gcs"
@@ -13,8 +13,7 @@ class Tumugi::Plugin::GCSFileSystemTest < Test::Unit::TestCase
   end
 
   teardown do
-    @fs.remove("gs://#{@bucket}/#{@prefix}/fs_test/")
-    @fs.remove("gs://#{@bucket}/#{@prefix}/fs_dest/")
+    @fs.remove("gs://#{@bucket}/#{@prefix}/")
   end
 
   sub_test_case "exist?" do
