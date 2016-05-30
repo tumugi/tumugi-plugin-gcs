@@ -8,7 +8,7 @@ module Tumugi
   module Plugin
     class GoogleCloudStorageFileTarget < Tumugi::Plugin::FileSystemTarget
       Tumugi::Plugin.register_target('google_cloud_storage_file', self)
-      Tumugi::Config.register_section('google_cloud_storage', :project_id, :client_email, :private_key)
+      Tumugi::Config.register_section('google_cloud_storage', :project_id, :client_email, :private_key, :private_key_file)
 
       attr_reader :bucket, :key, :path
 

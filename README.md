@@ -14,11 +14,15 @@ gem 'tumugi-plugin-google_cloud_storage'
 
 And then execute:
 
-    $ bundle
+```sh
+$ bundle
+```
 
 Or install it yourself as:
 
-    $ gem install tumugi-plugin-google_cloud_storage
+```sh
+$ gem install tumugi-plugin-google_cloud_storage
+```
 
 ## Component
 
@@ -39,6 +43,32 @@ task :task1 do
   run do
     log 'task1#run'
     output.open('w') {|f| f.puts('done') }
+  end
+end
+```
+
+### Config Section
+
+tumugi-plugin-google_cloud_storage provide config section named "google_cloud_storage" which can specified Google Cloud Storage autenticaion info.
+
+#### Authenticate by client_email and private_key
+
+```rb
+Tumugi.config do |config|
+  config.section("google_cloud_storage") do |section|
+    section.project_id = "xxx"
+    section.client_email = "yyy@yyy.iam.gserviceaccount.com"
+    section.private_key = "zzz"
+  end
+end
+```
+
+#### Authenticate by JSON key file
+
+```rb
+Tumugi.configure do |config|
+  config.section("google_cloud_storage") do |section|
+    section.private_key_file = "/path/to/key.json"
   end
 end
 ```
