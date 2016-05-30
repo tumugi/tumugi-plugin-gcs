@@ -16,6 +16,11 @@ class Tumugi::Plugin::GoogleCloudStorage::FileSystemTest < Test::Unit::TestCase
     @fs.remove("gs://#{@bucket}/#{@prefix}/")
   end
 
+  test 'initialize by JSON key file' do
+    fs = Tumugi::Plugin::GoogleCloudStorage::FileSystem.new(credential_file)
+    assert_true(fs.exist?("gs://#{@bucket}/#{@prefix}/fs_test/"))
+  end
+
   sub_test_case "exist?" do
     test "true" do
       assert_true(@fs.exist?("gs://#{@bucket}/#{@prefix}/fs_test/"))

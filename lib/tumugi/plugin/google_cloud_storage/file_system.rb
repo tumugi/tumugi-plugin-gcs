@@ -1,4 +1,5 @@
 require 'uri'
+require 'json'
 require 'google/apis/storage_v1'
 require 'tumugi/file_system'
 
@@ -9,7 +10,6 @@ module Tumugi
         attr_reader :client
 
         def initialize(config)
-          @project_id = config[:project_id] || config.project_id
           @client = create_client(config)
         end
 
@@ -237,8 +237,16 @@ module Tumugi
         end
 
         def create_client(config)
-          client_email = config[:client_email] || config.client_email
-          private_key = config[:private_key] || config.private_key
+          if config.private_key_file.nil?
+            @project_id = config.project_id
+            client_email = config.client_email
+            private_key = config.private_key
+          else
+            json = JSON.parse(File.read(config.private_key_file))
+            @project_id = json['project_id']
+            client_email = json['client_email']
+            private_key = json['private_key']
+          end
 
           # https://cloud.google.com/storage/docs/authentication
           scope = "https://www.googleapis.com/auth/devstorage.read_write"
