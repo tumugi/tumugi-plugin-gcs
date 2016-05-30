@@ -2,8 +2,8 @@ require 'tumugi/atomic_file'
 
 module Tumugi
   module Plugin
-    module GCS
-      class AtomicGCSFile < Tumugi::AtomicFile
+    module GoogleCloudStorage
+      class AtomicFile < Tumugi::AtomicFile
         def initialize(path, client)
           super(path)
           @client = client

@@ -1,11 +1,11 @@
 require_relative '../../../test_helper'
-require 'tumugi/plugin/target/gcs_file'
+require 'tumugi/plugin/target/google_cloud_storage_file'
 
-class Tumugi::Plugin::GCSFileTargetTest < Test::Unit::TestCase
+class Tumugi::Plugin::GoogleCloudStorageFileTargetTest < Test::Unit::TestCase
   setup do
     @bucket = "tumugi-plugin-gcs"
     @prefix = "#{SecureRandom.hex(10)}"
-    @target = Tumugi::Plugin::GCSFileTarget.new(bucket: @bucket, key: "#{@prefix}/test.txt")
+    @target = Tumugi::Plugin::GoogleCloudStorageFileTarget.new(bucket: @bucket, key: "#{@prefix}/test.txt")
     @target.fs.put_string('test', "gs://#{@bucket}/#{@prefix}/readable.txt")
   end
 
@@ -25,7 +25,7 @@ class Tumugi::Plugin::GCSFileTargetTest < Test::Unit::TestCase
   end
 
   test "exist?" do
-    readable_target = Tumugi::Plugin::GCSFileTarget.new(bucket: @bucket, key: "#{@prefix}/readable.txt")
+    readable_target = Tumugi::Plugin::GoogleCloudStorageFileTarget.new(bucket: @bucket, key: "#{@prefix}/readable.txt")
     assert_true(readable_target.exist?)
     assert_false(@target.exist?)
   end

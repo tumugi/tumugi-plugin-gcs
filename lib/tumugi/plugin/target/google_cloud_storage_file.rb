@@ -1,14 +1,14 @@
 require 'tumugi/config'
 require 'tumugi/plugin'
 require 'tumugi/plugin/file_system_target'
-require 'tumugi/plugin/gcs/atomic_gcs_file'
-require 'tumugi/plugin/gcs/gcs_file_system'
+require 'tumugi/plugin/google_cloud_storage/atomic_file'
+require 'tumugi/plugin/google_cloud_storage/file_system'
 
 module Tumugi
   module Plugin
-    class GCSFileTarget < Tumugi::Plugin::FileSystemTarget
-      Tumugi::Plugin.register_target('gcs_file', self)
-      Tumugi::Config.register_section('gcs', :project_id, :client_email, :private_key)
+    class GoogleCloudStorageFileTarget < Tumugi::Plugin::FileSystemTarget
+      Tumugi::Plugin.register_target('google_cloud_storage_file', self)
+      Tumugi::Config.register_section('google_cloud_storage', :project_id, :client_email, :private_key)
 
       attr_reader :bucket, :key, :path
 
@@ -19,19 +19,15 @@ module Tumugi
         log "bucket='#{bucket}, key='#{key}'"
       end
 
-      def exist?
-        fs.exist?(path)
-      end
-
       def fs
-        @fs ||= Tumugi::Plugin::GCS::GCSFileSystem.new(Tumugi.config.section('gcs'))
+        @fs ||= Tumugi::Plugin::GoogleCloudStorage::FileSystem.new(Tumugi.config.section('google_cloud_storage'))
       end
 
       def open(mode="r", &block)
         if mode.include? 'r'
           fs.download(path, mode: mode, &block)
         elsif mode.include? 'w'
-          Tumugi::Plugin::GCS::AtomicGCSFile.new(path, fs).open(&block)
+          Tumugi::Plugin::GoogleCloudStorage::AtomicFile.new(path, fs).open(&block)
         else
           raise Tumugi::TumugiError.new('Invalid mode: #{mode}')
         end

@@ -1,9 +1,9 @@
 require_relative '../../../test_helper'
-require 'tumugi/plugin/gcs/gcs_file_system'
+require 'tumugi/plugin/google_cloud_storage/file_system'
 
-class Tumugi::Plugin::GCS::GCSFileSystemTest < Test::Unit::TestCase
+class Tumugi::Plugin::GoogleCloudStorage::FileSystemTest < Test::Unit::TestCase
   setup do
-    @fs = Tumugi::Plugin::GCS::GCSFileSystem.new(credential)
+    @fs = Tumugi::Plugin::GoogleCloudStorage::FileSystem.new(credential)
     @bucket = "tumugi-plugin-gcs"
     @prefix = "#{SecureRandom.hex(10)}"
     @keys = [ "file1.txt", "folder/file2.txt"]

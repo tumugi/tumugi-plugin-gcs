@@ -20,7 +20,7 @@ def credential
 end
 
 Tumugi.configure do |config|
-  config.section('gcs') do |section|
+  config.section('google_cloud_storage') do |section|
     section.project_id = credential[:project_id]
     section.client_email = credential[:client_email]
     section.private_key = credential[:private_key]

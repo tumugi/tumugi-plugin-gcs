@@ -1,4 +1,4 @@
-# tumugi-plugin-gcs
+# tumugi-plugin-google_cloud_storage
 
 [tumugi](https://github.com/tumugi/tumugi) plugin for Google Cloud Storage.
 
@@ -7,7 +7,7 @@
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'tumugi-plugin-gcs'
+gem 'tumugi-plugin-google_cloud_storage'
 ```
 
 And then execute:
@@ -16,11 +16,11 @@ And then execute:
 
 Or install it yourself as:
 
-    $ gem install tumugi-plugin-gcs
+    $ gem install tumugi-plugin-google_cloud_storage
 
 ## Component
 
-### Tumugi::Plugin::GCSFileTarget
+### Tumugi::Plugin::GoogleCloudStorageFileTarget
 
 This target represent file or directory on Googl Cloud Storage.
 
@@ -30,7 +30,7 @@ After checking out the repo, run `bin/setup` to install dependencies. Then, run 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/tumugi/tumugi-plugin-gcs
+Bug reports and pull requests are welcome on GitHub at https://github.com/tumugi/ttumugi-plugin-google_cloud_storage
 
 ## License
 
