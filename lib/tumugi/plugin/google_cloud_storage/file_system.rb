@@ -33,7 +33,7 @@ module Tumugi
           raise Tumugi::FileSystemError.new("Cannot delete root of bucket at path '#{path}'") if root?(key)
 
           if obj_exist?(bucket, key)
-            @client.delete_object(bucket, key)
+            @client.delete_object(bucket, key, options: default_request_options)
             wait_until { !obj_exist?(bucket, key) }
             true
           elsif directory?(path)
@@ -42,7 +42,7 @@ module Tumugi
             objs = entries(path).map(&:name)
             @client.batch do |client|
               objs.each do |obj|
-                client.delete_object(bucket, obj)
+                client.delete_object(bucket, obj, options: default_request_options)
               end
             end
             wait_until { !directory?(path) }
@@ -80,7 +80,7 @@ module Tumugi
               true
             else
               # Any objects with this prefix
-              objects = @client.list_objects(bucket, prefix: obj, max_results: 20)
+              objects = @client.list_objects(bucket, prefix: obj, max_results: 20, options: default_request_options)
               !!(objects.items && objects.items.size > 0)
             end
           end
@@ -95,7 +95,7 @@ module Tumugi
           next_page_token = ''
 
           until next_page_token.nil?
-            objects = @client.list_objects(bucket, prefix: obj, page_token: next_page_token)
+            objects = @client.list_objects(bucket, prefix: obj, page_token: next_page_token, options: default_request_options)
             if objects && objects.items
               results.concat(objects.items)
               next_page_token = objects.next_page_token
@@ -120,7 +120,7 @@ module Tumugi
         def upload(media, path, content_type: nil)
           bucket, key = path_to_bucket_and_key(path)
           obj = Google::Apis::StorageV1::Object.new(bucket: bucket, name: key)
-          @client.insert_object(bucket, obj, upload_source: media, content_type: content_type)
+          @client.insert_object(bucket, obj, upload_source: media, content_type: content_type, options: default_request_options)
           wait_until { obj_exist?(bucket, key) }
         rescue
           process_error($!)
@@ -131,7 +131,7 @@ module Tumugi
           if download_path.nil?
             download_path = Tempfile.new('tumugi_gcs_file_system').path
           end
-          @client.get_object(bucket, key, download_dest: download_path)
+          @client.get_object(bucket, key, download_dest: download_path, options: default_request_options)
           wait_until { File.exist?(download_path) }
 
           if block_given?
@@ -165,12 +165,12 @@ module Tumugi
             entries(src_path).each do |entry|
               suffix = entry.name[src_prefix.length..-1]
               @client.copy_object(src_bucket, src_prefix + suffix,
-                                  dest_bucket, dest_prefix + suffix)
+                                  dest_bucket, dest_prefix + suffix, options: default_request_options)
               copied_objs << (dest_prefix + suffix)
             end
             wait_until { copied_objs.all? {|obj| obj_exist?(dest_bucket, obj)} }
           else
-            @client.copy_object(src_bucket, src_key, dest_bucket, dest_key)
+            @client.copy_object(src_bucket, src_key, dest_bucket, dest_key, options: default_request_options)
             wait_until { obj_exist?(dest_bucket, dest_key) }
           end
         rescue
@@ -186,7 +186,7 @@ module Tumugi
         def create_bucket(bucket)
           unless bucket_exist?(bucket)
             b = Google::Apis::StorageV1::Bucket.new(name: bucket)
-            @client.insert_bucket(@project_id, b)
+            @client.insert_bucket(@project_id, b, options: default_request_options)
             true
           else
             false
@@ -197,7 +197,7 @@ module Tumugi
 
         def remove_bucket(bucket)
           if bucket_exist?(bucket)
-            @client.delete_bucket(bucket)
+            @client.delete_bucket(bucket, options: default_request_options)
             true
           else
             false
@@ -207,7 +207,7 @@ module Tumugi
         end
 
         def bucket_exist?(bucket)
-          @client.get_bucket(bucket)
+          @client.get_bucket(bucket, options: default_request_options)
           true
         rescue => e
           return false if e.status_code == 404
@@ -217,7 +217,7 @@ module Tumugi
         private
 
         def obj_exist?(bucket, key)
-          @client.get_object(bucket, key)
+          @client.get_object(bucket, key, options: default_request_options)
           true
         rescue => e
           return false if e.status_code == 404
@@ -269,6 +269,13 @@ module Tumugi
           client = Google::Apis::StorageV1::StorageService.new
           client.authorization = auth
           client
+        end
+
+        def default_request_options
+          Google::Apis::RequestOptions.new({
+            retries: 5,
+            timeout_sec: 60
+          })
         end
 
         def wait_until(&block)
