@@ -12,10 +12,11 @@ module Tumugi
 
       attr_reader :bucket, :key, :path
 
-      def initialize(bucket:, key:)
+      def initialize(bucket:, key:, fs: nil)
         @bucket = bucket
         @key = key
         @path = "gs://#{File.join(bucket, key)}"
+        @fs = fs unless fs.nil?
         log "bucket='#{bucket}, key='#{key}'"
       end
 
