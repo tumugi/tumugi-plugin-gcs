@@ -1,6 +1,8 @@
 require 'uri'
 require 'json'
+require 'googleauth/service_account'
 require 'google/apis/storage_v1'
+require 'google/apis/drive_v3'
 require 'tumugi/file_system'
 
 module Tumugi
@@ -10,7 +12,7 @@ module Tumugi
         attr_reader :client
 
         def initialize(config)
-          @client = create_client(config)
+          save_config(config)
         end
 
         #######################################################################
@@ -33,16 +35,16 @@ module Tumugi
           raise Tumugi::FileSystemError.new("Cannot delete root of bucket at path '#{path}'") if root?(key)
 
           if obj_exist?(bucket, key)
-            @client.delete_object(bucket, key, options: default_request_options)
+            client.delete_object(bucket, key, options: request_options)
             wait_until { !obj_exist?(bucket, key) }
             true
           elsif directory?(path)
             raise Tumugi::FileSystemError.new("Path '#{path}' is a directory. Must use recursive delete") if !recursive
 
             objs = entries(path).map(&:name)
-            @client.batch do |client|
+            client.batch do |client|
               objs.each do |obj|
-                client.delete_object(bucket, obj, options: default_request_options)
+                client.delete_object(bucket, obj, options: request_options)
               end
             end
             wait_until { !directory?(path) }
@@ -80,7 +82,7 @@ module Tumugi
               true
             else
               # Any objects with this prefix
-              objects = @client.list_objects(bucket, prefix: obj, max_results: 20, options: default_request_options)
+              objects = client.list_objects(bucket, prefix: obj, max_results: 20, options: request_options)
               !!(objects.items && objects.items.size > 0)
             end
           end
@@ -95,7 +97,7 @@ module Tumugi
           next_page_token = ''
 
           until next_page_token.nil?
-            objects = @client.list_objects(bucket, prefix: obj, page_token: next_page_token, options: default_request_options)
+            objects = client.list_objects(bucket, prefix: obj, page_token: next_page_token, options: request_options)
             if objects && objects.items
               results.concat(objects.items)
               next_page_token = objects.next_page_token
@@ -120,7 +122,7 @@ module Tumugi
         def upload(media, path, content_type: nil)
           bucket, key = path_to_bucket_and_key(path)
           obj = Google::Apis::StorageV1::Object.new(bucket: bucket, name: key)
-          @client.insert_object(bucket, obj, upload_source: media, content_type: content_type, options: default_request_options)
+          client.insert_object(bucket, obj, upload_source: media, content_type: content_type, options: request_options)
           wait_until { obj_exist?(bucket, key) }
         rescue
           process_error($!)
@@ -131,7 +133,7 @@ module Tumugi
           if download_path.nil?
             download_path = Tempfile.new('tumugi_gcs_file_system').path
           end
-          @client.get_object(bucket, key, download_dest: download_path, options: default_request_options)
+          client.get_object(bucket, key, download_dest: download_path, options: request_options)
           wait_until { File.exist?(download_path) }
 
           if block_given?
@@ -164,13 +166,13 @@ module Tumugi
             copied_objs = []
             entries(src_path).each do |entry|
               suffix = entry.name[src_prefix.length..-1]
-              @client.copy_object(src_bucket, src_prefix + suffix,
-                                  dest_bucket, dest_prefix + suffix, options: default_request_options)
+              client.copy_object(src_bucket, src_prefix + suffix,
+                                  dest_bucket, dest_prefix + suffix, options: request_options)
               copied_objs << (dest_prefix + suffix)
             end
             wait_until { copied_objs.all? {|obj| obj_exist?(dest_bucket, obj)} }
           else
-            @client.copy_object(src_bucket, src_key, dest_bucket, dest_key, options: default_request_options)
+            client.copy_object(src_bucket, src_key, dest_bucket, dest_key, options: request_options)
             wait_until { obj_exist?(dest_bucket, dest_key) }
           end
         rescue
@@ -186,7 +188,7 @@ module Tumugi
         def create_bucket(bucket)
           unless bucket_exist?(bucket)
             b = Google::Apis::StorageV1::Bucket.new(name: bucket)
-            @client.insert_bucket(@project_id, b, options: default_request_options)
+            client.insert_bucket(@project_id, b, options: request_options)
             true
           else
             false
@@ -197,7 +199,7 @@ module Tumugi
 
         def remove_bucket(bucket)
           if bucket_exist?(bucket)
-            @client.delete_bucket(bucket, options: default_request_options)
+            client.delete_bucket(bucket, options: request_options)
             true
           else
             false
@@ -207,7 +209,7 @@ module Tumugi
         end
 
         def bucket_exist?(bucket)
-          @client.get_bucket(bucket, options: default_request_options)
+          client.get_bucket(bucket, options: request_options)
           true
         rescue => e
           return false if e.status_code == 404
@@ -217,7 +219,7 @@ module Tumugi
         private
 
         def obj_exist?(bucket, key)
-          @client.get_object(bucket, key, options: default_request_options)
+          client.get_object(bucket, key, options: request_options)
           true
         rescue => e
           return false if e.status_code == 404
@@ -236,7 +238,7 @@ module Tumugi
           end
         end
 
-        def create_client(config)
+        def save_config(config)
           if config.private_key_file.nil?
             @project_id = config.project_id
             client_email = config.client_email
@@ -247,35 +249,39 @@ module Tumugi
             client_email = json['client_email']
             private_key = json['private_key']
           end
-
-          # https://cloud.google.com/storage/docs/authentication
-          scope = "https://www.googleapis.com/auth/devstorage.read_write"
-
-          if client_email and private_key
-            auth = Signet::OAuth2::Client.new(
-              token_credential_uri: "https://accounts.google.com/o/oauth2/token",
-              audience: "https://accounts.google.com/o/oauth2/token",
-              scope: scope,
-              issuer: client_email,
-              signing_key: OpenSSL::PKey.read(private_key))
-            # MEMO: signet-0.6.1 depend on Farady.default_connection
-            Faraday.default_connection.options.timeout = 60
-            auth.fetch_access_token!
-          else
-            auth = Google::Auth.get_application_default([scope])
-            auth.fetch_access_token!
-          end
-
-          client = Google::Apis::StorageV1::StorageService.new
-          client.authorization = auth
-          client
+          @key = {
+            client_email: client_email,
+            private_key: private_key
+          }
         end
 
-        def default_request_options
-          Google::Apis::RequestOptions.new({
+        def client
+          return @cached_client if @cached_client && @cached_client_expiration > Time.now
+
+          client = Google::Apis::StorageV1::StorageService.new
+          scope = Google::Apis::StorageV1::AUTH_DEVSTORAGE_READ_WRITE
+
+          if @key[:client_email] and @key[:private_key]
+            options = {
+              json_key_io: StringIO.new(JSON.generate(@key)),
+              scope: scope
+            }
+            auth = Google::Auth::ServiceAccountCredentials.make_creds(options)
+          else
+            auth = Google::Auth.get_application_default([scope])
+          end
+          auth.fetch_access_token!
+          client.authorization = auth
+
+          @cached_client_expiration = Time.now + (auth.expires_in / 2)
+          @cached_client = client
+        end
+
+        def request_options
+          {
             retries: 5,
             timeout_sec: 60
-          })
+          }
         end
 
         def wait_until(&block)
