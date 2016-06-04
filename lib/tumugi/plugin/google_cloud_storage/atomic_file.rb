@@ -4,13 +4,13 @@ module Tumugi
   module Plugin
     module GoogleCloudStorage
       class AtomicFile < Tumugi::AtomicFile
-        def initialize(path, client)
+        def initialize(path, fs)
           super(path)
-          @client = client
+          @fs = fs
         end
 
         def move_to_final_destination(temp_file)
-          @client.upload(temp_file, path)
+          @fs.upload(temp_file, path)
         end
       end
     end
