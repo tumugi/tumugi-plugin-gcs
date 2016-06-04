@@ -1,4 +1,4 @@
-require_relative '../../../test_helper'
+require_relative '../../test_helper'
 require 'tumugi/plugin/target/google_cloud_storage_file'
 
 class Tumugi::Plugin::GoogleCloudStorageFileTargetTest < Test::Unit::TestCase
