@@ -1,4 +1,4 @@
-require_relative '../../../test_helper'
+require_relative '../../test_helper'
 require 'tumugi/plugin/google_cloud_storage/atomic_file'
 require 'tumugi/plugin/google_cloud_storage/file_system'
 
