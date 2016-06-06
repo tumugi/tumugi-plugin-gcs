@@ -1,6 +1,6 @@
 # Change Log
 
-## [0.2.0](https://github.com/tumugi/tumugi-plugin-google_cloud_storage/tree/0.2.0) (2016-06-05)
+## [0.2.0](https://github.com/tumugi/tumugi-plugin-google_cloud_storage/tree/0.2.0) (2016-06-06)
 [Full Changelog](https://github.com/tumugi/tumugi-plugin-google_cloud_storage/compare/v0.1.0...0.2.0)
 
 **Implemented enhancements:**
@@ -10,6 +10,8 @@
 
 **Merged pull requests:**
 
+- Remove unneeded log [\#16](https://github.com/tumugi/tumugi-plugin-google_cloud_storage/pull/16) ([hakobera](https://github.com/hakobera))
+- Prepare release for 0.2.0 [\#15](https://github.com/tumugi/tumugi-plugin-google_cloud_storage/pull/15) ([hakobera](https://github.com/hakobera))
 - Change test directory [\#13](https://github.com/tumugi/tumugi-plugin-google_cloud_storage/pull/13) ([hakobera](https://github.com/hakobera))
 - Change ruby version on travis [\#12](https://github.com/tumugi/tumugi-plugin-google_cloud_storage/pull/12) ([hakobera](https://github.com/hakobera))
 
