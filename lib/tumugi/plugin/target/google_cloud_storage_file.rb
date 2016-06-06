@@ -17,7 +17,6 @@ module Tumugi
         @key = key
         @path = "gs://#{File.join(bucket, key)}"
         @fs = fs unless fs.nil?
-        log "bucket='#{bucket}, key='#{key}'"
       end
 
       def fs
