@@ -1,8 +1,8 @@
 [![Build Status](https://travis-ci.org/tumugi/tumugi-plugin-google_cloud_storage.svg?branch=master)](https://travis-ci.org/tumugi/tumugi-plugin-google_cloud_storage) [![Code Climate](https://codeclimate.com/github/tumugi/tumugi-plugin-google_cloud_storage/badges/gpa.svg)](https://codeclimate.com/github/tumugi/tumugi-plugin-google_cloud_storage) [![Coverage Status](https://coveralls.io/repos/github/tumugi/tumugi-plugin-google_cloud_storage/badge.svg?branch=master)](https://coveralls.io/github/tumugi/tumugi-plugin-google_cloud_storage?branch=master) [![Gem Version](https://badge.fury.io/rb/tumugi-plugin-google_cloud_storage.svg)](https://badge.fury.io/rb/tumugi-plugin-google_cloud_storage)
 
-# tumugi-plugin-google_cloud_storage
+# Google Cloud Storage plugin for [tumugi]((https://github.com/tumugi/tumugi)
 
-[tumugi](https://github.com/tumugi/tumugi) plugin for Google Cloud Storage.
+tumugi-plugin-google_cloud_storage is a plugin for integrate [Google Cloud Storage](https://cloud.google.com/storage/) and [tumugi](https://github.com/tumugi/tumugi).
 
 ## Installation
 
@@ -12,39 +12,47 @@ Add this line to your application's Gemfile:
 gem 'tumugi-plugin-google_cloud_storage'
 ```
 
-And then execute:
+And then execute `bundle install`
 
-```sh
-$ bundle
-```
-
-Or install it yourself as:
-
-```sh
-$ gem install tumugi-plugin-google_cloud_storage
-```
-
-## Component
+## Target
 
 ### Tumugi::Plugin::GoogleCloudStorageFileTarget
 
-This target represent file or directory on Googl Cloud Storage.
-This target has 2 parameters, `bucket` and `key`.
+This target represent file or directory of Googl Cloud Storage.
 
-Tumugi workflow file using this target is like this:
+#### Paramters
+
+| name   | type   | required? | default | description                                                                              |
+|--------|--------|-----------|---------|------------------------------------------------------------------------------------------|
+| bucket | string | required  |         | [bucket](https://cloud.google.com/storage/docs/json_api/v1/buckets) name of GCS          |
+| key    | string | required  |         | key (= [object](https://cloud.google.com/storage/docs/json_api/v1/objects) name) of GCS. |
+
+#### Examples
+
+Create a file which content is "done" in Google Cloud Storage.
 
 ```rb
 task :task1 do
   param :bucket, type: :string, auto_bind: true, required: true
   param :day, type: :time, auto_bind: true, required: true
+
   output do
-    target(:google_cloud_storage_file, bucket: bucket, key: "test_#{day.strftime('%Y%m%d')}.txt")
+    target(:google_cloud_storage_file,
+      bucket: bucket,
+      key: "test_#{day.strftime('%Y%m%d')}.txt")
   end
+
   run do
     log 'task1#run'
     output.open('w') {|f| f.puts('done') }
   end
 end
+```
+
+Execute this file:
+
+```sh
+$ bundle exec tumugi run -f workflow.rb -p bucket:BUCKET_NAME day:2016-07-01
 ```
 
 ### Config Section
