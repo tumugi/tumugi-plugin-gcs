@@ -1,7 +1,15 @@
 # Change Log
 
-## [0.2.0](https://github.com/tumugi/tumugi-plugin-google_cloud_storage/tree/0.2.0) (2016-06-06)
-[Full Changelog](https://github.com/tumugi/tumugi-plugin-google_cloud_storage/compare/v0.1.0...0.2.0)
+## [v0.3.0](https://github.com/tumugi/tumugi-plugin-google_cloud_storage/tree/v0.3.0) (2016-07-18)
+[Full Changelog](https://github.com/tumugi/tumugi-plugin-google_cloud_storage/compare/v0.2.0...v0.3.0)
+
+**Merged pull requests:**
+
+- Update README [\#19](https://github.com/tumugi/tumugi-plugin-google_cloud_storage/pull/19) ([hakobera](https://github.com/hakobera))
+- Update tumugi to 0.6 [\#18](https://github.com/tumugi/tumugi-plugin-google_cloud_storage/pull/18) ([hakobera](https://github.com/hakobera))
+
+## [v0.2.0](https://github.com/tumugi/tumugi-plugin-google_cloud_storage/tree/v0.2.0) (2016-06-06)
+[Full Changelog](https://github.com/tumugi/tumugi-plugin-google_cloud_storage/compare/v0.1.0...v0.2.0)
 
 **Implemented enhancements:**
 
@@ -10,6 +18,7 @@
 
 **Merged pull requests:**
 
+- Update changelog [\#17](https://github.com/tumugi/tumugi-plugin-google_cloud_storage/pull/17) ([hakobera](https://github.com/hakobera))
 - Remove unneeded log [\#16](https://github.com/tumugi/tumugi-plugin-google_cloud_storage/pull/16) ([hakobera](https://github.com/hakobera))
 - Prepare release for 0.2.0 [\#15](https://github.com/tumugi/tumugi-plugin-google_cloud_storage/pull/15) ([hakobera](https://github.com/hakobera))
 - Change test directory [\#13](https://github.com/tumugi/tumugi-plugin-google_cloud_storage/pull/13) ([hakobera](https://github.com/hakobera))
